@@ -1,0 +1,38 @@
+services:
+  api:
+    image: docker.io/frenzy669/grus-api:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - config-volume:/config
+      - checkpoints-volume:/checkpoints
+    networks:
+      - app-network
+    privileged: true
+    group_add:
+      - "0"  # root group
+      - "998"  # crio group
+      - "999"  # podman group
+    security_opt:
+      - label=disable
+    environment:
+      - CHECKPOINT_PATH=/checkpoints
+      - GRUS_API_URL=http://192.168.33.216:8000
+    user: root
+    cap_add:
+      - SYS_ADMIN
+  grus-admin:
+    image: docker.io/frenzy669/grus-admin:latest
+    environment:
+      - API_URL=http://192.168.33.216:8000
+    depends_on:
+      api:
+        condition: service_completed_successfully
+    ports:
+      - "8080:80" # TODO: change to 8080    
+networks:
+  app-network:
+    driver: bridge
+volumes:
+  config-volume:
+  checkpoints-volume:

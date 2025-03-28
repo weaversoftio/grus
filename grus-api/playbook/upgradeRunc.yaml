@@ -1,0 +1,53 @@
+---
+- name: Update runc to a specific version
+  hosts: all
+  become: yes
+  vars:
+    runc_version: "v1.2.4"
+    runc_url: "{{ fastapi_host }}/download/runc/{{ runc_version }}"
+    runc_path: "/usr/bin/runc"
+    download_path: "/tmp/runc.amd64"
+
+  tasks:
+    - name: Download runc binary to /tmp
+      get_url:
+        url: "{{ runc_url }}"
+        dest: "{{ download_path }}"
+        mode: '0755'
+      register: download_result
+      failed_when: download_result is failed
+      changed_when: download_result is changed
+
+    - name: Remount /usr as writable
+      shell: mount -o remount,rw /usr
+      register: remount_rw_result
+      failed_when: remount_rw_result.rc != 0
+      changed_when: remount_rw_result.rc == 0
+
+    - name: Backup existing runc binary if it exists
+      shell: |
+        if [ -f "{{ runc_path }}" ]; then
+          cp "{{ runc_path }}" "{{ runc_path }}.bak"
+        fi
+      register: backup_result
+      failed_when: backup_result.rc != 0
+      changed_when: backup_result.rc == 0
+
+    - name: Replace the runc binary
+      shell: |
+        mv "{{ download_path }}" "{{ runc_path }}"
+        chmod +x "{{ runc_path }}"
+      register: replace_result
+      failed_when: replace_result.rc != 0
+      changed_when: replace_result.rc == 0
+
+    - name: Verify the runc installation
+      shell: "{{ runc_path }} --version"
+      register: verify_result
+      failed_when: verify_result.rc != 0
+      changed_when: false
+
+    - name: Display success message
+      debug:
+        msg: "runc has been successfully updated to version {{ runc_version }}."
+      when: verify_result.rc == 0

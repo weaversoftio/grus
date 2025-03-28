@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+pydantic
+paramiko
+python-multipart
+requests
+pyjwt
+openai
+volatility3
+ansible

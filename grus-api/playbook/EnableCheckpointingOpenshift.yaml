@@ -1,0 +1,77 @@
+---
+- name: Enable container checkpointing in OpenShift
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Pause the Machine Config Pool
+      command: >
+        oc patch machineconfigpool master
+        --type=merge
+        -p '{"spec":{"paused":true}}'
+      changed_when: false  # This task does not change the system
+
+    - name: Create MachineConfig for CRI-O checkpointing
+      copy:
+        dest: /tmp/machine_config.yaml
+        content: |
+          apiVersion: machineconfiguration.openshift.io/v1
+          kind: MachineConfig
+          metadata:
+            labels:
+              machineconfiguration.openshift.io/role: master  # Change to 'worker' if needed
+            name: 05-worker-enable-criu
+          spec:
+            config:
+              ignition:
+                version: 3.2.0
+              storage:
+                files:
+                  - contents:
+                      source: data:,%5Bcrio.runtime%5D%0Aenable_criu_support%20%3D%20true%0A
+                    mode: 420
+                    overwrite: true
+                    path: /etc/crio/crio.conf.d/05-enable-criu
+                  - contents:
+                      source: data:,tcp-established
+                    mode: 420
+                    overwrite: true
+                    path: /etc/criu/criu.conf
+
+    - name: Apply the MachineConfig
+      command: oc apply -f /tmp/machine_config.yaml
+      changed_when: false  # This task does not change the system
+
+    - name: Create KubeletConfig to enable ContainerCheckpoint feature gate
+      copy:
+        dest: /tmp/kubelet_config.yaml
+        content: |
+          apiVersion: machineconfiguration.openshift.io/v1
+          kind: KubeletConfig
+          metadata:
+            name: enable-container-checkpoint
+          spec:
+            machineConfigPoolSelector:
+              matchLabels:
+                machineconfiguration.openshift.io/role: master  # Change to 'worker' if needed
+            kubeletConfig:
+              featureGates:
+                ContainerCheckpoint: true
+
+    - name: Apply the KubeletConfig
+      command: oc apply -f /tmp/kubelet_config.yaml
+      changed_when: false  # This task does not change the system
+
+    - name: Enable ContainerCheckpoint feature gate globally
+      command: >
+        oc patch featuregate cluster
+        --type=json
+        --patch '[{"op": "add", "path": "/spec/featureSet", "value": "CustomNoUpgrade"},
+                  {"op": "add", "path": "/spec/customNoUpgrade", "value": {"enabled": ["ContainerCheckpoint"]}}]'
+      changed_when: false  # This task does not change the system
+
+    - name: Unpause the Machine Config Pool
+      command: >
+        oc patch machineconfigpool master
+        --type=merge
+        -p '{"spec":{"paused":false}}'
+      changed_when: false  # This task does not change the system

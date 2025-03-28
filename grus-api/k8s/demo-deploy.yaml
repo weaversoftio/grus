@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-music-deployment
+  labels:
+    app: spring-music
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spring-music-pod
+  template:
+    metadata:
+      labels:
+        app: spring-music-pod
+    spec:
+      containers:
+      - name: spring-music
+        image: frenzy669/cpu_demo:latest
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/sh", "-c", "echo Loading Middleware && stress --cpu 2 --timeout 2s && java -jar spring-music.jar"]
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: dev
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        resources: {}
+      restartPolicy: Always

@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  grus-admin:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: localhost/grus-admin_frontend:latest 
+    environment:
+      - API_URL=http://192.168.33.216:8000
+    ports:
+      - "8080:80"
+    container_name: grus-admin
+    restart: unless-stopped
+    networks:
+      - grus-network
+
+networks:
+  grus-network:
+    driver: bridge

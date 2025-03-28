@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: restore-pod3
+  labels:
+    app: restore3
+spec:
+  initContainers:
+  - name: restore-init
+    image: frenzy669/spring-music:base
+    command: ['sh', '-c', 'echo "Just here to pull the base image"']
+  containers:
+  - name: restore-container
+    image: frenzy669/spring-music:checkpoint
+

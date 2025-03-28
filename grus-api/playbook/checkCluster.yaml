@@ -1,0 +1,72 @@
+---
+- name: Verify CRIU and CRIO Configuration
+  hosts: nodes
+  gather_facts: no
+  tasks:
+    - name: The 'enable_criu_support = true' is not present in '/etc/crio/crio.conf.d/05-enable-criu'
+      ansible.builtin.shell: |
+        grep -q '^enable_criu_support = true$' /etc/crio/crio.conf.d/05-enable-criu
+      register: crio_conf_check
+      ignore_errors: false
+      changed_when: false  # This task does not change the system
+
+    - name: The 'tcp-established' is not present in '/etc/criu/criu.conf'
+      ansible.builtin.shell: |
+        grep -q '^tcp-established$' /etc/criu/criu.conf
+      register: criu_conf_check
+      ignore_errors: false
+      changed_when: false  # This task does not change the system
+
+    - name: Get 'criu' version
+      ansible.builtin.command: criu --version
+      register: criu_version_result
+      ignore_errors: false
+      changed_when: false  # This task does not change the system
+
+    - name: Extract 'criu' version number
+      ansible.builtin.set_fact:
+        criu_version: "{{ criu_version_result.stdout.split()[1] }}"
+      when: criu_version_result.rc == 0
+      ignore_errors: false
+
+    - name: The version of 'criu' is not correct
+      ansible.builtin.debug:
+        msg: "CRIU version {{ criu_version }}"
+      when: criu_version is version('3.19', '>=')
+      ignore_errors: false
+
+    - name: Retrieve 'crio' version
+      ansible.builtin.command: crio --version
+      register: crio_version_result
+      ignore_errors: false
+      changed_when: false  # This task does not change the system
+
+    - name: Extract 'crio' version number
+      ansible.builtin.set_fact:
+        crio_version: "{{ (crio_version_result.stdout | regex_search('Version:\\s+([0-9]+\\.[0-9]+\\.[0-9]+)', '\\1') | first) | default('') | trim }}"
+      when: crio_version_result.rc == 0
+      ignore_errors: false
+
+    - name: The version of 'crio' is not correct
+      ansible.builtin.debug:
+        msg: "CRIO version {{ crio_version }}"
+      when: crio_version | length > 0 and crio_version is version('1.29.9', '>=')
+      ignore_errors: false
+
+    - name: Retrieve 'runc' version
+      ansible.builtin.command: runc --version
+      register: runc_version_result
+      ignore_errors: false
+      changed_when: false  # This task does not change the system
+
+    - name: Extract 'runc' version number
+      ansible.builtin.set_fact:
+        runc_version: "{{ (runc_version_result.stdout | regex_search('runc version ([0-9]+\\.[0-9]+\\.[0-9]+)', '\\1') | first) | default('') | trim }}"
+      when: runc_version_result.rc == 0
+      ignore_errors: false
+
+    - name: The version of 'runc' is not correct
+      ansible.builtin.debug:
+        msg: "RUNC version {{ runc_version }}"
+      when: runc_version | length > 0 and runc_version is version('1.1.15', '>=')
+      ignore_errors: false

@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "grus.fullname" . }}
+  labels:
+    {{- include "grus.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "grus.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "grus.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "grus.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}-api
+          {{- with .Values.securityContext }}
+          securityContext:
+            privileged: true
+            runAsUser: 0
+            capabilities:
+              add:
+              - SYS_ADMIN
+          {{- end }}
+          image: "{{ .Values.image.api.repository }}:{{ .Values.image.api.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: api
+              containerPort: 8000
+              protocol: TCP
+          env:
+            - name: CONTAINER_RUNTIME_ENDPOINT
+              value: unix:///run/crio/crio.sock
+            - name: CONTAINER_HOST
+              value: unix:///run/crio/crio.sock
+            - name: CONTAINER_RUNTIME
+              value: remote
+            - name: CHECKPOINT_PATH
+              value: {{ .Values.checkpointPath }}
+          volumeMounts:
+            - name: app-volume
+              mountPath: /app/checkpoints
+            - name: crio-socket
+              mountPath: /run/crio/crio.sock
+            - name: crictl-bin
+              mountPath: /usr/bin/crictl
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        - name: {{ .Chart.Name }}-admin
+          image: "{{ .Values.image.admin.repository }}:{{ .Values.image.admin.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: admin
+              containerPort: 80
+              protocol: TCP
+      volumes:
+        - name: app-volume
+          hostPath:
+            path: {{ .Values.checkpointPath }}
+            type: DirectoryOrCreate
+        - name: crio-socket
+          hostPath:
+            path: /run/crio/crio.sock
+            type: Socket
+        - name: crictl-bin
+          hostPath:
+            path: /usr/bin/crictl
+            type: File
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

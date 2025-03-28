@@ -1,0 +1,13 @@
+apiVersion: grafana.integreatly.org/v1beta1
+kind: Grafana
+metadata:
+  name: grafana
+  namespace: grafana
+spec:
+  ingress:
+    enabled: true
+    host: grafana-crc.example.com
+  resources:
+    requests:
+      memory: 500Mi
+      cpu: 200m

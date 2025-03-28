@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: grus-api
+  namespace: grus
+  labels:
+    app: grus-api
+spec:
+  containers:
+  - name: api
+    image: frenzy669/grus-api
+    ports:
+    - containerPort: 8000
+    volumeMounts:
+    - name: app-volume
+      mountPath: /app/checkpoints
+    - name: crio-socket
+      mountPath: /run/crio/crio.sock
+    - name: crictl-bin
+      mountPath: /usr/bin/crictl
+    env:
+    - name: CONTAINER_RUNTIME_ENDPOINT
+      value: unix:///run/crio/crio.sock
+    - name: CONTAINER_HOST
+      value: unix:///run/crio/crio.sock
+    - name: CONTAINER_RUNTIME
+      value: remote
+    - name: CHECKPOINT_PATH
+      value: /home/openshift/checkpoint-ocp-tool/operator/checkpoints
+    securityContext:
+      privileged: true
+      runAsUser: 0
+      capabilities:
+        add:
+        - SYS_ADMIN
+  volumes:
+  - name: app-volume
+    hostPath:
+      path: /home/openshift/checkpoint-ocp-tool/operator/checkpoints # Replace with actual host path
+      type: Directory
+  - name: crio-socket
+    hostPath:
+      path: /run/crio/crio.sock
+      type: Socket
+  - name: crictl-bin
+    hostPath:
+      path: /usr/bin/crictl
+      type: File

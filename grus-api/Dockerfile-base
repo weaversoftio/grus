@@ -1,0 +1,15 @@
+# Use Red Hat UBI 8 with Python 3.9
+FROM registry.access.redhat.com/ubi8/python-39
+
+# Install system dependencies including buildah and crictl
+USER root
+RUN dnf install -y wget buildah tar gzip curl libselinux-utils container-selinux \
+    && dnf clean all
+
+# Install crictl and oc CLI
+RUN curl -L https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.28.0/crictl-v1.28.0-linux-amd64.tar.gz -o crictl.tar.gz \
+    && tar zxvf crictl.tar.gz -C /usr/local/bin \
+    && rm -f crictl.tar.gz \
+    && curl -L https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/stable/openshift-client-linux-amd64-rhel8.tar.gz -o oc.tar.gz \
+    && tar zxvf oc.tar.gz -C /usr/local/bin \
+    && rm -f oc.tar.gz

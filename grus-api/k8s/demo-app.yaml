@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: restore-pod
+  labels:
+    app: restore-pod 
+spec:
+  containers:
+  - name: restore-pod 
+    image: docker.io/frenzy669/checkpoint-counter

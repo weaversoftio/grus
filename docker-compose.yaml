@@ -1,0 +1,61 @@
+services:
+  api:
+    stop_grace_period: 2s
+    build: 
+      context: ./grus-api
+      dockerfile: Dockerfile
+    image: docker.io/frenzy669/grus-api:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./grus-api:/app
+      - ./registry.crt:/etc/pki/ca-trust/source/anchors/registry.crt:ro
+    networks:
+      - app-network
+    privileged: true
+    group_add:
+      - "0"  # root group
+      - "998"  # crio group
+      - "999"  # podman group
+    security_opt:
+      - label=disable
+    environment:
+      - GRUS_API_URL=http://192.168.33.216:8000
+      - CONTAINER_RUNTIME=remote
+      - CHECKPOINT_PATH=/home/openshift/checkpoint-ocp-tool/operator/checkpoints
+      - OPENAI_API_KEY=""
+    user: root
+    cap_add:
+      - SYS_ADMIN
+  grus-admin:
+    stop_grace_period: 1s
+    build: 
+      context: ./grus-admin
+      dockerfile: Dockerfile
+    image: docker.io/frenzy669/grus-admin:latest
+    environment:
+      - API_URL=http://192.168.33.216:8000
+      - WS_URL=ws://192.168.33.216:8000
+    depends_on:
+      api:
+        condition: service_completed_successfully
+    ports:
+      - "8088:80" # TODO: change to 8080    
+  # ollama:
+  #   container_name: ollama
+  #   image: docker.io/ollama/ollama:0.5.11 
+  #   restart: unless-stopped
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ollama-data:/root/.ollama
+  #   environment:
+  #     - OLLAMA_NUM_THREADS=16
+  #     - OLLAMA_MAX_WORKERS=4
+  #   command: ["ollama", "serve"]
+volumes:
+  ollama-data:
+    driver: local
+networks:
+  app-network:
+    driver: bridge
