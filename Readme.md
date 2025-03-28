@@ -11,6 +11,12 @@ Grus is a FastAPI-based service that automates the process of checkpointing and 
 - Checkpoint listing and management
 - Full automation workflow for checkpoint-to-image process
 
+
+## Grus Admin Panel
+![Alt text](./images/grus-admin-panel.png)
+
+
+
 ## API Endpoints
 
 ### Registry Operations
