@@ -1,4 +1,4 @@
-# Grus - OpenShift Container Checkpoint Automation
+# Grus - Kubernetes/OpenShift Container Checkpoint Automation
 
 Grus is a FastAPI-based service that automates the process of checkpointing and restoring containers within OpenShift environments. It provides a streamlined way to create container checkpoints and push them as images for later use, significantly reducing application startup times.
 
