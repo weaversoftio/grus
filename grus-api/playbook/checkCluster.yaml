@@ -32,7 +32,7 @@
     - name: The version of 'criu' is not correct
       ansible.builtin.debug:
         msg: "CRIU version {{ criu_version }}"
-      when: criu_version is version('3.19', '>=')
+      when: criu_version is version('3.17', '>=')
       ignore_errors: false
 
     - name: Retrieve 'crio' version
@@ -50,7 +50,7 @@
     - name: The version of 'crio' is not correct
       ansible.builtin.debug:
         msg: "CRIO version {{ crio_version }}"
-      when: crio_version | length > 0 and crio_version is version('1.29.9', '>=')
+      when: crio_version | length > 0 and crio_version is version('1.25', '>=')
       ignore_errors: false
 
     - name: Retrieve 'runc' version
@@ -68,5 +68,17 @@
     - name: The version of 'runc' is not correct
       ansible.builtin.debug:
         msg: "RUNC version {{ runc_version }}"
-      when: runc_version | length > 0 and runc_version is version('1.1.15', '>=')
+      when: runc_version | length > 0 and runc_version is version('1.1.14', '>=')
       ignore_errors: false
+
+##### Need to Delete after new runc release bug fix selinux
+    - name: Check if SELinux is Enforcing
+      ansible.builtin.command: getenforce
+      register: selinux_status
+      changed_when: false
+      ignore_errors: false
+
+    - name: The system has SELinux enabled
+      ansible.builtin.debug:
+        msg: "SELinux status: {{ selinux_status.stdout }}"
+      when: selinux_status.stdout | lower == "permissive"

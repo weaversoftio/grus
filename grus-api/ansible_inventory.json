@@ -1,0 +1,11 @@
+{
+    "nodes": {
+        "hosts": {
+            "192.168.126.11": {
+                "ansible_user": "core",
+                "hostname": "crc-vlf7c-master-0",
+                "ip": "192.168.126.11"
+            }
+        }
+    }
+}

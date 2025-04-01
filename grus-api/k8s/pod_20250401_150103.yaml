@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    k8s.v1.cni.cncf.io/network-status: |-
+      [{
+          "name": "openshift-sdn",
+          "interface": "eth0",
+          "ips": [
+              "10.217.0.68"
+          ],
+          "default": true,
+          "dns": {}
+      }]
+  creationTimestamp: "2025-04-01T12:00:11Z"
+  generateName: spring-music-deployment-556dcfd6bf-
+  labels:
+    app: spring-music-pod
+    pod-template-hash: 556dcfd6bf
+  name: spring-music-deployment-556dcfd6bf-6n4wk
+  namespace: default
+spec:
+  containers:
+    - command:
+        - /bin/sh
+        - -c
+        - echo Loading Middleware && stress --cpu 2 --timeout 2s && java -jar spring-music.jar
+      env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: dev
+      image: frenzy669/spring-checkp:b61fbf28
+      imagePullPolicy: IfNotPresent
+      name: spring-music
+      ports:
+        - containerPort: 8080
+          protocol: TCP
+      resources: {}
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+        - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+          name: kube-api-access-tz894
+          readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  imagePullSecrets:
+    - name: default-dockercfg-mnf4s
+  nodeName: crc-vlf7c-master-0
+  preemptionPolicy: PreemptLowerPriority
+  priority: 0
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext: {}
+  serviceAccount: default
+  serviceAccountName: default
+  terminationGracePeriodSeconds: 30
+  tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+  volumes:
+    - name: kube-api-access-tz894
+      projected:
+        defaultMode: 420
+        sources:
+          - serviceAccountToken:
+              expirationSeconds: 3607
+              path: token
+          - configMap:
+              items:
+                - key: ca.crt
+                  path: ca.crt
+              name: kube-root-ca.crt
+          - downwardAPI:
+              items:
+                - fieldRef:
+                    apiVersion: v1
+                    fieldPath: metadata.namespace
+                  path: namespace
+          - configMap:
+              items:
+                - key: service-ca.crt
+                  path: service-ca.crt
+              name: openshift-service-ca.crt

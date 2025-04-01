@@ -51,6 +51,7 @@ async def enable_checkpointing(request: ClusterRequest, username: str):
             try:
                 await send_message(username, {"type": "progress", "name": "Enabling Checkpointing", "message": f"Running Ansible Playbook"})
                 # Run the Ansible playbook
+                print(f"Running: ansible-playbook -i {inventory_file} {playbook_path}")
                 process = await asyncio.create_subprocess_exec(
                     "ansible-playbook", "-i", inventory_file, playbook_path,
                     stdout=asyncio.subprocess.PIPE,

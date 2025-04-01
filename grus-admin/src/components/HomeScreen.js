@@ -11,7 +11,6 @@ import { Delete, SystemUpdateAlt as InstallIcon, SafetyCheck as VerifyIcon } fro
 import { removeCookie } from "../utils/cookies";
 import { useProgress } from "./common/ProgressContext";
 const HomeScreen = () => {
-  const { startTracking } = useProgress()
   const { enqueueSnackbar } = useSnackbar();
   const navigate = useNavigate()
 
@@ -98,9 +97,9 @@ const HomeScreen = () => {
     const { success = false } = payload || {}
     if (!success) {
       enqueueSnackbar("Enable checkpointing failed", { variant: "error" })
-      return
+    } else {
+      enqueueSnackbar("Enable checkpointing successful", { variant: "success" })
     }
-    enqueueSnackbar("Enable checkpointing successful", { variant: "success" })
   }
 
   const handleInstallRunc = async () => {

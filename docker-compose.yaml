@@ -20,7 +20,7 @@ services:
     security_opt:
       - label=disable
     environment:
-      - GRUS_API_URL=http://192.168.33.216:8000
+      - GRUS_API_URL=http://192.168.33.247:8000
       - CONTAINER_RUNTIME=remote
       - CHECKPOINT_PATH=/home/openshift/checkpoint-ocp-tool/operator/checkpoints
       - OPENAI_API_KEY=""
@@ -34,13 +34,15 @@ services:
       dockerfile: Dockerfile
     image: docker.io/frenzy669/grus-admin:latest
     environment:
-      - API_URL=http://192.168.33.216:8000
-      - WS_URL=ws://192.168.33.216:8000
-    depends_on:
-      api:
-        condition: service_completed_successfully
+      - API_URL=http://192.168.33.247:8000
+      - WS_URL=ws://192.168.33.247:8000
+    # depends_on:
+    #   api:
+    #     condition: service_completed_successfully ##NOT WORKING!!!! @Assaf
     ports:
       - "8088:80" # TODO: change to 8080    
+    networks:
+      - app-network
   # ollama:
   #   container_name: ollama
   #   image: docker.io/ollama/ollama:0.5.11 
@@ -53,9 +55,9 @@ services:
   #     - OLLAMA_NUM_THREADS=16
   #     - OLLAMA_MAX_WORKERS=4
   #   command: ["ollama", "serve"]
-volumes:
-  ollama-data:
-    driver: local
+# volumes:
+#   ollama-data:
+#     driver: local
 networks:
   app-network:
     driver: bridge

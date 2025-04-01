@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from "react";
 const config = window.ENV
+const pingInterval = 10000
 
 const ProgressContext = createContext();
 
@@ -9,8 +10,8 @@ export const ProgressProvider = ({ children }) => {
   const [open, setOpen] = useState(false);
   const [username, setUsername] = useState(null);
   const [progress, setProgress] = useState([]);
-  const [isConnected, setIsConnected] = useState(false);
   const [socket, setSocket] = useState(null);
+  const [loading, setLoading] = useState(false)
   const pingTimeout = useRef(null);
   const reconnectTimeout = useRef(null);
 
@@ -24,20 +25,20 @@ export const ProgressProvider = ({ children }) => {
     };
 
     ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      console.log("onmessage", data)
-      if (data.type === "ping") {
-        ws.send(JSON.stringify({ type: "pong" }));
-      } else {
-        if (data.type === "progress") {
-          setProgress(prev => [...prev, data]);
-        }
+      const data =JSON.parse(event.data);
+      if (data.type === "pong") {
+        console.log("Received pong from server");
+        return;
+      }
+
+      if (data.type === "progress") {
+        setProgress(prev => [...prev, data]);
       }
     };
 
     ws.onclose = () => {
       console.log("WebSocket disconnected. Attempting to reconnect...");
-      clearTimeout(pingTimeout.current);
+      stopPing();
       reconnectTimeout.current = setTimeout(() => connectWebSocket(), 5000); // Retry in 5 sec
     };
 
@@ -49,40 +50,41 @@ export const ProgressProvider = ({ children }) => {
     setSocket(ws);
   };
 
+  const startPing = (ws) => {
+    pingTimeout.current = setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: "ping" }));
+        console.log("Sent ping to server"); 
+      }
+    }, pingInterval);
+  };
+
+  const stopPing = () => {
+    if (pingTimeout.current) clearInterval(pingTimeout.current);
+  };
+
+
   useEffect(() => {
     if (!username) return
 
     connectWebSocket();
     return () => {
-      clearInterval(pingTimeout.current);
-      clearTimeout(reconnectTimeout.current);
-      socket?.close();
+      if (socket) socket.close();
+      if (reconnectTimeout.current) clearTimeout(reconnectTimeout.current);
+      stopPing();
     };
   }, [username]);
 
-  const startPing = (ws) => {
-    pingTimeout.current = setInterval(() => {
-      if (ws.readyState === WebSocket.OPEN) {
-        console.log('Sending ping...');
-        ws.send(JSON.stringify({ type: "ping" }));
-      } else {
-        console.log('Attempting to reconnect...');
-        ws.connect()
-      }
-    }, 30000);
-  };
-
-  const startTracking = (taskId) => {
-    setProgress([]);
-    setOpen(true);
-  };
+  
+  const startTracking = () => setLoading(true);
+  const stopTracking = () => setLoading(false);
 
   const closeTracker = () => setOpen(false);
   const openTracker = () => setOpen(true);
   const clearLogs = () => setProgress([]);
 
   return (
-    <ProgressContext.Provider value={{ open, progress, startTracking, closeTracker, openTracker, setUsername, clearLogs }}>
+    <ProgressContext.Provider value={{ open, progress, loading, startTracking, stopTracking, closeTracker, openTracker, setUsername, clearLogs }}>
       {children}
     </ProgressContext.Provider>
   );

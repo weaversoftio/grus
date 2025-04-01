@@ -8,6 +8,7 @@ import json
 import socket
 from typing import List, Dict
 from routes.websocket import send_message
+GRUS_API_URL = os.getenv("GRUS_API_URL", "http://192.168.33.216:8000")
 
 class RunCResponse(BaseModel):
     success: bool
@@ -48,7 +49,7 @@ async def install_runc(request: RunCRequest, username: str):
 
         
         set_ansible_private_key_env(request.clusterName)
-        fastapi_host = f"http://{request.fastapi_host}:8000" 
+        fastapi_host = GRUS_API_URL
         try:
             # Run the Ansible playbook
             process = await asyncio.create_subprocess_exec(

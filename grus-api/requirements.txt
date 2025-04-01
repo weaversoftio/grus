@@ -8,3 +8,4 @@ pyjwt
 openai
 volatility3
 ansible
+pyyaml

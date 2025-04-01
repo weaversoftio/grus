@@ -18,8 +18,8 @@
           kind: MachineConfig
           metadata:
             labels:
-              machineconfiguration.openshift.io/role: master  # Change to 'worker' if needed
-            name: 05-worker-enable-criu
+              machineconfiguration.openshift.io/role: master  #Becuase ITS CRC
+            name: 05-master-enable-criu #Becuase ITS CRC
           spec:
             config:
               ignition:
@@ -75,3 +75,4 @@
         --type=merge
         -p '{"spec":{"paused":false}}'
       changed_when: false  # This task does not change the system
+
