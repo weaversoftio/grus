@@ -19,13 +19,8 @@ from routes.websocket import router as websocket_router
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 checkpoint_path = os.path.join(BASE_DIR, 'checkpoints')
-
-origins = [
-    "http://192.168.33.216:8080",
-    "http://localhost",
-    "http://localhost:3000",
-    "*"
-]
+origins_env = os.getenv("GRUS_ORIGINS", "http://localhost,http://localhost:3000,*")
+origins = origins_env.split(",")
 
 # Initialize FastAPI app
 app = FastAPI()

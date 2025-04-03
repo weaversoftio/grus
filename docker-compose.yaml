@@ -24,6 +24,7 @@ services:
       - CONTAINER_RUNTIME=remote
       - CHECKPOINT_PATH=/home/openshift/checkpoint-ocp-tool/operator/checkpoints
       - OPENAI_API_KEY=""
+      - GRUS_ORIGINS=http://192.168.33.216:8088
     user: root
     cap_add:
       - SYS_ADMIN

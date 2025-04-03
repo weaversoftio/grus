@@ -25,7 +25,6 @@ async def list_cluster_config():
                         kube_api_url=data["cluster_config_details"]["kube_api_url"],
                         kube_username=data["cluster_config_details"]["kube_username"],
                         kube_password=data["cluster_config_details"]["kube_password"],
-                        ssh_key=data["cluster_config_details"]["ssh_key"],
                         nodes_username=data["cluster_config_details"]["nodes_username"],
                     )
                     # Create ClusterConfig with the details

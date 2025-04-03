@@ -4,7 +4,6 @@ class ClusterConfigDetails(BaseModel):
     kube_api_url: str
     kube_username: str
     kube_password: str
-    ssh_key: str
     nodes_username: str
 
 class ClusterConfig(BaseModel):

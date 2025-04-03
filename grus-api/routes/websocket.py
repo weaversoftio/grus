@@ -3,65 +3,52 @@ import asyncio
 from typing import Dict
 from datetime import datetime, timedelta
 
-active_connections: dict[str, WebSocket] = {}
-
-async def connect(username: str, websocket: WebSocket):
-    """Accepts and stores a new WebSocket connection using username as the key."""
-    await websocket.accept()
-    active_connections[username] = websocket
-    print(f"User {username} connected.") 
-    asyncio.create_task(ping_pong(username, websocket))
-
-
-async def disconnect(username: str):
-    if username in active_connections:
-        del active_connections[username]
-        # print(f"User {username} disconnected.")
-
-async def send_message(username: str, message: dict):
-    """Send message updates to a specific user."""
-    websocket = active_connections.get(username)
-    # print(f"websocket send message username {username}", str(message))
-    if websocket:
-        try:
-            await active_connections[username].send_json(message)
-        except RuntimeError:
-            await disconnect(username)
-
-async def ping_pong(username: str, websocket: WebSocket):
-    """Periodically send a ping to keep the connection alive."""
-    try:
-        while True:
-            await websocket.send_json({"type": "ping"})
-            await asyncio.sleep(30)  # Send a ping every 30 seconds
-    except Exception:
-        await disconnect(username)  # Remove the user on failure
-
+active_connections: Dict[str, WebSocket] = {}
 
 router = APIRouter()
 
 @router.websocket("/progress/{username}")
 async def websocket_endpoint(websocket: WebSocket, username: str):
     """Handles WebSocket connection and listens for pings."""
-    await connect(username, websocket)
+    await websocket.accept()
+    active_connections[username] = websocket
+    print(f"User {username} connected")
+
     try:
         while True:
             data = await websocket.receive_json()
-            # if data.get("type") == "pong":
-            #     print(f"Pong received from {username}")
-    except WebSocketDisconnect as e:
-        print("Websocketdisconnected", e)
-        await disconnect(username)
-        print(f"WebSocket disconnected for {username}")
+            if data.get("type") == "ping":
+                print(f"Received Ping from {username}")
 
-@router.get("/progress/{username}")
-async def start_progress(username: str):
-    """Simulate sending progress updates over WebSocket."""
+                await websocket.send_json({"type": "pong"})
+            else:
+                print(f"Received from {username}: {data}")
+
+    except WebSocketDisconnect as e:
+        print(f"User {username} got disconnected")
+    finally:
+        active_connections.pop(username, None)
+
+async def disconnect(username: str):
     try:
-        for i in range(0, 101, 10):
-            if not active_connections:  # Stop if no active connections
-                break
-            await send_message(username, i)
-            await asyncio.sleep(1)
-    except WebSocketDisconnect:
-        print("WebSocket disconnected while sending progress")
+        active_connections.pop(username, None)
+    except Exception as e:
+        print("error disconnecting", str(e))
+
+        # print(f"User {username} disconnected.")
+
+async def send_message(username: str, message: dict):
+    """Send a message to a specific user if they are connected."""
+    if username in active_connections:
+    # print(f"websocket send message username {username}", str(message))
+        if username in active_connections:
+            try:
+                await active_connections[username].send_json(message)
+                return {"status": "success", "message": f"Sent to {username}"}
+            except Exception as e:
+                active_connections.pop(username, None)  # Remove disconnected users
+                return {"status": "error", "message": f"Failed to send to {username}: {str(e)}"}
+        return {"status": "error", "message": f"User {username} not connected"}
+
+    print(f"Websocket {username} not found")
+

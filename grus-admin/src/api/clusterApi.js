@@ -30,6 +30,18 @@ const create = async (data) => new Promise(async (resolve, reject) => {
     }
 })
 
+const uploadSshkey = async (clusterName, formData) => new Promise(async (resolve, reject) => {
+    try {
+        const response = await api.post(`/config/cluster/nodes/upload-ssh-key?cluster_name=${encodeURIComponent(clusterName)}`, formData, {
+            headers: { "Content-Type": "multipart/form-data" }
+        })
+        if (!response.data) return reject()
+        resolve(response.data)
+    } catch (err) {
+        reject(err)
+    }
+})
+
 const remove = async (name) => new Promise(async (resolve, reject) => {
     try {
         const response = await api.delete(`/config/cluster/delete`, { data: { name } })
@@ -95,6 +107,7 @@ export const clusterApi = {
     getById,
     getList,
     create,
+    uploadSshkey,
     remove,
     login,
     verify,

@@ -14,9 +14,13 @@ import {
 import { ExpandLess, ExpandMore, Close, Clear } from "@mui/icons-material";
 import { useProgress } from "./ProgressContext";
 import ManageHistoryIcon from "@mui/icons-material/ManageHistory";
+import LinearProgress from '@mui/material/LinearProgress';
+import { useSelector } from "react-redux";
 
 const ProgressTracker = () => {
-  const { open, progress, closeTracker, openTracker, clearLogs } = useProgress();
+  const { open, progress, closeTracker, openTracker, clearLogs, loading } = useProgress();
+  //TODO: Collect all async task function
+  const {loading: loadingObj} = useSelector(state => state.cluster)
   const [collapsedGroups, setCollapsedGroups] = useState({});
 
   const toggleGroup = (group) => {
@@ -45,10 +49,13 @@ const ProgressTracker = () => {
           padding: "5px 10px",
           position: "absolute",
           zIndex: 2,
-          background: "linear-gradient(135deg,rgba(83, 83, 83, 0.9) 0%, rgba(43, 43, 43, 0.9) 100%)"
+          background: "linear-gradient(135deg,rgba(83, 83, 83, 0.9) 0%, rgba(43, 43, 43, 0.9) 100%)",
+          display: "flex",
+          flexDirection: "column"
         }}
       >
         <ManageHistoryIcon />
+        {loading && <LinearProgress color="inherit" style={{width: 20, marginTop: 5}}/>}
       </Button>
       <Drawer
         anchor="right"
@@ -89,7 +96,10 @@ const ProgressTracker = () => {
       border: "1px solid #ddd",
     }}
   >
+
     <Button variant="outlined" sx={{mb:1}} size="small" startIcon={<Clear/>} onClick={clearLogs}>Clear</Button>
+    {loading && <LinearProgress style={{width: "100%", marginTop: 5}}/>}
+
     {Object.keys(groupedProgress).length ? (
       <List>
         {Object.entries(groupedProgress).map(([category, tasks]) => (

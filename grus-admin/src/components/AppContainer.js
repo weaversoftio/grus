@@ -32,6 +32,7 @@ import UsersIcon from '@mui/icons-material/Group';
 import ClusterIcon from '@mui/icons-material/Tune';
 import ProgressTracker from './common/TaskProgressDetails';
 import { useProgress } from './common/ProgressContext';
+import { CloudUpload } from '@mui/icons-material';
 
 const drawerWidth = 240;
 const selectedBackgroundColor = "rgba(36, 143, 231, 1)";
@@ -128,9 +129,12 @@ export default function AppContainer({ children }) {
   const [clusterUrl, setClusterUrl] = useState("");
   const [clusterUsername, setClusterUsername] = useState("");
   const [clusterPassword, setClusterPassword] = useState("");
+  const [clusterConfirmPassword, setClusterConfirmPassword] = useState("");
   const [clusterAction, setClusterAction] = useState("");
   const [nodesUsername, setNodesUsername] = useState("");
-  const [sshKey, setSshkey] = useState("");
+  const [sshKey, setSshkey] = useState(null);
+  const [clusterFormErrors, setClusterFormErrors] = useState({});
+
   const [clusterOpen, setClusterOpen] = useState(false);
   const { list: clusterList = [], selectedCluster = "", checkpointingEnabled = false, kubeAuthenticated = false } = useSelector(state => state.cluster)
   const { authenticated = false, user } = useSelector(state => state.auth)
@@ -204,22 +208,33 @@ export default function AppContainer({ children }) {
     enqueueSnackbar("Creating new cluster initiated...", { variant: "info" })
     setClusterAction("create")
     //remove the new line characters
+    if (clusterPassword !== clusterConfirmPassword) return setClusterFormErrors({confirmPassword: "Password mismatch"})
     await clusterApi.create({
       name: clusterName,
       kube_api_url: clusterUrl,
       kube_username: clusterUsername,
       kube_password: clusterPassword,
       nodes_username: nodesUsername,
-      ssh_key: sshKey //TODO: should not be multiline
     })
+
+    const formData = new FormData()
+    formData.append("file", sshKey)
+    await clusterApi.uploadSshkey(clusterName, formData)
+    handleClearClusterForm()
+    handleGetClusterList()
+    enqueueSnackbar("New cluster added...", { variant: "success" })
+
+  }
+
+  const handleClearClusterForm = () => {
     setClusterOpen(false)
     setClusterName("")
     setClusterUrl("")
     setClusterUsername("")
     setClusterPassword("")
-    handleGetClusterList()
-    enqueueSnackbar("New cluster added...", { variant: "success" })
-
+    setClusterConfirmPassword("")
+    setNodesUsername("")
+    setSshkey(null)
   }
 
   const renderSwitchCluster = () => {
@@ -242,7 +257,7 @@ export default function AppContainer({ children }) {
 
   const renderClusterForm = () => {
     return (
-      <DialogComponent open={clusterOpen} onClose={() => setClusterOpen(false)} paperProps={{ maxWidth: 500 }}>
+      <DialogComponent open={clusterOpen} onClose={handleClearClusterForm} paperProps={{ maxWidth: 500 }}>
         <Box gap={2} display={"flex"} flexDirection={"column"}>
           <Typography variant='h5'>Add Cluster</Typography>
           <TextField
@@ -263,14 +278,28 @@ export default function AppContainer({ children }) {
           />
           <TextField
             label="Password"
+            type={"password"}
             onChange={(e) => setClusterPassword(e.target.value)}
             value={clusterPassword}
           />
           <TextField
-            label="Ssh Key"
-            onChange={(e) => setSshkey(e.target.value)}
-            value={sshKey}
+            label="Confirm Password"
+            type={"password"}
+            onChange={(e) => setClusterConfirmPassword(e.target.value)}
+            value={clusterConfirmPassword}
+            error={clusterFormErrors?.confirmPassword}
+            helperText={clusterFormErrors?.confirmPassword}
           />
+          <Button variant="outlined" component="label" style={{width: 200, textTransform: "capitalize"}} startIcon={<CloudUpload />}>
+            Upload SSH Key
+            <input
+              type="file"
+              accept="*"
+              hidden
+              onChange={(e) => setSshkey(e.target.files[0])}
+            />
+          </Button>
+          {sshKey && <Typography variant="body2">{sshKey.name}</Typography>}
           <TextField
             label="Nodes Username"
             onChange={(e) => setNodesUsername(e.target.value)}

@@ -73,6 +73,7 @@ const CheckpointsScreen = ({ classes }) => {
     const { pod_name, checkpoint_name, username } = currentCheckpoint || {}
     if (!registry) return enqueueSnackbar("Please select registry", { variant: "error" })
     setActionRunning(true)
+    handleClearDialog()
     enqueueSnackbar(`Creating and pushing checkpoint: ${checkpoint_name} started`, { variant: "info" })
 
     try {

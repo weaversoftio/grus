@@ -10,7 +10,6 @@ class ClusterConfigRequest(BaseModel):
     kube_username: str
     kube_password: str
     nodes_username: str
-    ssh_key: str
     name: str
 
 class ClusterConfigResponse(BaseModel):
@@ -29,15 +28,11 @@ async def create_cluster_config(request: ClusterConfigRequest):
             message=f"Cluster config file {request.name} already exists"
         )
 
-    # Clean the SSH key by removing newlines and normalizing whitespace
-    cleaned_ssh_key = re.sub(r'\s+', ' ', request.ssh_key).strip()
-    
     config = ClusterConfig(    
         cluster_config_details=ClusterConfigDetails(
             kube_api_url=request.kube_api_url,
             kube_username=request.kube_username,
             kube_password=request.kube_password,
-            ssh_key=base64.b64encode(cleaned_ssh_key.encode()).decode(),
             nodes_username=request.nodes_username
         ),
         name=request.name

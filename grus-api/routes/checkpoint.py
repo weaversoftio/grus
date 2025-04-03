@@ -13,6 +13,9 @@ from flows.upload_checkpoint import upload_checkpoint
 from flows.analytics.checkpoint_insights import CheckpointInsightsUseCase, CheckpointInsightsRequest
 from flows.analytics.analyze_checkpoint_volatility import analyze_checkpoint_volatility, VolatilityRequest, checkpoint_volatility_analysis
 
+from middleware.verify_token import verify_token
+from routes.websocket import send_message
+
 router = APIRouter()
 logger = logging.getLogger("automation_api")
 
@@ -20,8 +23,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 checkpoint_path = os.path.join(BASE_DIR, 'checkpoints')
 
 @router.post("/kubelet/checkpoint")
-async def create_checkpoint_kubelet(request: PodCheckpointRequest):
-    return await checkpoint_container_kubelet(request)
+async def create_checkpoint_kubelet(request: PodCheckpointRequest, username: str = Depends(verify_token)):
+    return await checkpoint_container_kubelet(request, username)
 
 @router.post("/crictl/checkpoint")
 async def create_checkpoint_crictl(request: PodCheckpointRequest):
@@ -76,8 +79,9 @@ async def upload_checkpoint_route(pod_name: str, file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=f"Failed to upload file: {str(e)}")
 
 @router.post("/checkpointctl")
-async def checkpointctl(request: CheckpointctlRequest):
+async def checkpointctl(request: CheckpointctlRequest, username: str = Depends(verify_token)):
     try:
+        await send_message(username, {"type": "progress", "name": "Inspecting Checkpoint", "message": f"Inspecting checkpoint initiated"})
         pod_name = request.pod_name
         checkpoint_name = request.checkpoint_name
         checkpoint_dir = os.path.join(checkpoint_path, pod_name)
@@ -85,6 +89,7 @@ async def checkpointctl(request: CheckpointctlRequest):
         print(f"checkpointctl {checkpoint_file_path}")
         logger.info(f"path: {checkpoint_file_path}")
         # Run the `checkpointctl` command
+        await send_message(username, {"type": "progress", "name": "Inspecting Checkpoint", "message": f"Running command checkpointctl inspect {checkpoint_file_path} --all --format json"})
         inspect_output = await run(['checkpointctl', 'inspect', checkpoint_file_path, '--all', '--format', 'json'], True, True, True)
 
         # Save the output in the same folder as the checkpoint file
@@ -94,15 +99,16 @@ async def checkpointctl(request: CheckpointctlRequest):
 
         # Get the insights
         # CheckpointInsightsresponse = await CheckpointInsightsUseCase(CheckpointInsightsRequest(checkpoint_info_path=output_file_path, openai_api_key_secret_name="openai-api-key"))
-
+        await send_message(username, {"type": "progress", "name": "Inspecting Checkpoint", "message": f"Finished inspecting checkpoint, output: {output_file_path}"})
         return {"output": output_file_path}
         # return {"output": output_file_path, "insights": CheckpointInsightsresponse.insights}
     except Exception as e:
+        await send_message(username, {"type": "progress", "name": "Inspecting Checkpoint", "message": f"Failed with error: {str(e)}"})
         logger.error(f"Failed to run checkpointctl: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to run checkpointctl: {str(e)}")
 
 @router.get("/checkpointctl/information")
-async def checkpointctl_information(params: CheckpointctlRequest = Depends()):
+async def checkpointctl_information(params: CheckpointctlRequest = Depends(), username: str = Depends(verify_token)):
     pod_name = params.pod_name  # Assuming pod_id is provided in the request
     checkpoint_name = params.checkpoint_name
     checkpoint_dir = os.path.join(checkpoint_path, pod_name)  # Include pod_id in the directory path
