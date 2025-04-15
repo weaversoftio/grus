@@ -154,15 +154,6 @@ export default function AppContainer({ children }) {
     handleGetClusterList()
   }, [authenticated])
 
-  useEffect(() => {
-    if (!kubeAuthenticated || !token) return
-    handleVerifyCluster()
-  }, [kubeAuthenticated, token])
-
-  const handleVerifyCluster = () => {
-    dispatch(clusterActions.verify(selectedCluster.name))
-
-  }
   const handleGetClusterList = async () => {
     dispatch(clusterActions.getList())
   }
@@ -208,7 +199,7 @@ export default function AppContainer({ children }) {
     enqueueSnackbar("Creating new cluster initiated...", { variant: "info" })
     setClusterAction("create")
     //remove the new line characters
-    if (clusterPassword !== clusterConfirmPassword) return setClusterFormErrors({confirmPassword: "Password mismatch"})
+    if (clusterPassword !== clusterConfirmPassword) return setClusterFormErrors({ confirmPassword: "Password mismatch" })
     await clusterApi.create({
       name: clusterName,
       kube_api_url: clusterUrl,
@@ -258,8 +249,12 @@ export default function AppContainer({ children }) {
   const renderClusterForm = () => {
     return (
       <DialogComponent open={clusterOpen} onClose={handleClearClusterForm} paperProps={{ maxWidth: 500 }}>
+        <Box sx={{ p: 1 }}>
+          <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 1 }}>
+          Add Cluster
+          </Typography>
+        </Box>
         <Box gap={2} display={"flex"} flexDirection={"column"}>
-          <Typography variant='h5'>Add Cluster</Typography>
           <TextField
             label="Cluster Name"
             onChange={(e) => setClusterName(e.target.value)}
@@ -290,7 +285,7 @@ export default function AppContainer({ children }) {
             error={clusterFormErrors?.confirmPassword}
             helperText={clusterFormErrors?.confirmPassword}
           />
-          <Button variant="outlined" component="label" style={{width: 200, textTransform: "capitalize"}} startIcon={<CloudUpload />}>
+          <Button variant="outlined" component="label" style={{ width: 200, textTransform: "capitalize" }} startIcon={<CloudUpload />}>
             Upload SSH Key
             <input
               type="file"
@@ -313,14 +308,6 @@ export default function AppContainer({ children }) {
 
   const isSelected = (path) => {
     return window.location.pathname === path
-  }
-  const pageTitle = () => {
-    const path = window.location.pathname
-    const title = path.split("/").pop()
-    const defaultTitle = authenticated ? "Cluster Overview" : ""
-    return (
-      <Typography variant="h6" sx={{ mb: 2, textTransform: "capitalize" }}>{title || defaultTitle}</Typography>
-    )
   }
 
   const renderDrawer = () => {
@@ -423,11 +410,9 @@ export default function AppContainer({ children }) {
           </Toolbar>
         </AppBar>}
         {renderDrawer()}
-        <Box component="main" sx={{ flexGrow: 1, p: 3, backgroundColor: "#f5f5f5", position: "relative" }} width={"100%"} height={"100vh"}>
+        <Box component="main" sx={{ flexGrow: 1, p: 3, backgroundColor: "#f5f5f5", position: "relative" }} width={"100%"} height={"100%"} minHeight={"100vh"}>
           <DrawerHeader />
           {authenticated && <ProgressTracker />}
-
-          {pageTitle()}
           {children}
         </Box>
       </Box>

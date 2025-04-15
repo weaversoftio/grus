@@ -1,4 +1,4 @@
-import { Box, Button, Card, CircularProgress, Grid2 as Grid, TextField, Typography } from "@mui/material"
+import { Box, Button, Card, CircularProgress, Grid2 as Grid, Paper, TextField, Typography } from "@mui/material"
 import { useEffect, useState } from "react";
 import TableComponent from "./SecretsTable";
 import { useSnackbar } from 'notistack';
@@ -13,6 +13,7 @@ import { secretsActions } from "../../features/secret/secretSlice";
 import { secretApi } from "../../api/secretApi";
 import { Loading } from "../common/loading";
 import AddIcon from '@mui/icons-material/Add';
+import { CustomerContainer } from "../common/CustomContainer";
 
 const SecretsScreen = ({ classes }) => {
   const dispatch = useDispatch()
@@ -206,11 +207,6 @@ const SecretsScreen = ({ classes }) => {
     )
   }
 
-  if (secretListLoading) return (
-    <Loading />
-  )
-
-
   const renderDialog = () => {
     const dialogContent = {
       secretForm: renderSecretForm(),
@@ -263,53 +259,58 @@ const SecretsScreen = ({ classes }) => {
   })
 
   return (
-    <>
-      <Button
-        variant="contained"
-        onClick={() => setDialogType("secretForm")}
-        sx={{
-          backgroundColor: 'primary.main',
-          borderRadius: '8px',
-          textTransform: 'none',
-          mb: 2,
-          px: 3,
-          py: 1,
-          '&:hover': {
-            backgroundColor: 'primary.dark',
-            boxShadow: 2,
-          },
-        }}
-        startIcon={<AddIcon />}
-      >
-        Add Secret Key
-      </Button>
-      <Card sx={{ padding: '5px 10px' }}>
-        {renderError()}
-        {renderDialog()}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, marginBlock: 2, ml: 1 }}>
-          <Typography variant="h6" gutterBottom component="div">
-            Search
-          </Typography>
-          <TextField
-            sx={{ width: '300px' }}
-            size="small"
-            placeholder="Secret Name"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </Box>
-        <TableComponent
-          classes={classes}
-          data={filteredData}
-          total={filteredData.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          handleRowsPerPageChange={handleRowsPerPageChange}
-          handlePageChange={handlePageChange}
-          renderRowAction={rowAction}
-        />
-      </Card>
-    </>
+    <CustomerContainer title="Secrets">
+      {secretListLoading ? <Loading /> : (
+        <>
+          <Button
+            variant="contained"
+            onClick={() => setDialogType("secretForm")}
+            sx={{
+              backgroundColor: 'primary.main',
+              borderRadius: '8px',
+              textTransform: 'none',
+              mb: 2,
+              px: 3,
+              py: 1,
+              '&:hover': {
+                backgroundColor: 'primary.dark',
+                boxShadow: 2,
+              },
+            }}
+            startIcon={<AddIcon />}
+          >
+            Add Secret Key
+          </Button>
+          <Paper elevation={0} sx={{ px: 3, py: 1, bgcolor: 'background.paper', borderRadius: 2 }}>
+            {renderError()}
+            {renderDialog()}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, marginBlock: 2, ml: 1 }}>
+              <Typography variant="h6" gutterBottom component="div">
+                Search
+              </Typography>
+              <TextField
+                sx={{ width: '300px' }}
+                size="small"
+                placeholder="Secret Name"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </Box>
+            <TableComponent
+              classes={classes}
+              data={filteredData}
+              total={filteredData.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              handleRowsPerPageChange={handleRowsPerPageChange}
+              handlePageChange={handlePageChange}
+              renderRowAction={rowAction}
+            />
+          </Paper>
+
+        </>
+      )}
+    </CustomerContainer>
   )
 }
 

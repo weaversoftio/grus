@@ -157,7 +157,7 @@ const TableComponent = ({
 
     return (
       <TableContainer>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt:2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 2 }}>
           <Typography variant="h6" gutterBottom component="div">
             Search
           </Typography>
@@ -219,10 +219,10 @@ const TableComponent = ({
   }
 
   return (
-    <Card sx={{ padding: '5px 10px' }}>
+    <>
       {renderTable()}
       {renderPagination()}
-    </Card>
+    </>
   )
 }
 

@@ -8,7 +8,6 @@ export const Loading = ({text="Loading"}) => {
         alignItems: 'center',
         flexDirection: 'column',
         justifyContent: 'center',
-        height: '80vh',
         width: '100%',
         textAlign: 'center'
       }}

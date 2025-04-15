@@ -1,4 +1,4 @@
-import { Box, Button, CircularProgress, FormControl, Grid2 as Grid, MenuItem, Select, TextField, Typography, Card } from "@mui/material"
+import { Box, Button, CircularProgress, FormControl, Grid2 as Grid, MenuItem, Select, TextField, Typography, Card, Paper } from "@mui/material"
 import { useEffect, useState } from "react";
 import TableComponent from "../common/Table";
 import { useSnackbar } from 'notistack';
@@ -17,6 +17,7 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import { registryActions } from "../../features/registry/registrySlice";
 import { registryApi } from "../../api/registryApi";
 import { Loading } from "../common/loading";
+import { CustomerContainer } from "../common/CustomContainer";
 
 const CheckpointsScreen = ({ classes }) => {
   const dispatch = useDispatch()
@@ -43,13 +44,6 @@ const CheckpointsScreen = ({ classes }) => {
   const [isLogsOpen, setLogsOpen] = useState(false);
   const [logs, setLogs] = useState(null);
   const [searchTerm, setSearchTerm] = useState("")
-
-  // useEffect(() => {
-  //   console.log({ registryAuthenticated, registryUsername })
-  //   if (registryAuthenticated && registryUsername && currentCheckpoint) {
-  //     handlePushCheckpoint(currentCheckpoint?.pod_name, currentCheckpoint?.checkpoint_name)
-  //   }
-  // }, [registryAuthenticated, registryUsername])
 
   useEffect(() => {
     handleGetCheckpoints();
@@ -100,7 +94,7 @@ const CheckpointsScreen = ({ classes }) => {
     handleClearDialog()
   }
 
-  const handleScanCheckpoint = async(pod_name, checkpoint_name) => {
+  const handleScanCheckpoint = async (pod_name, checkpoint_name) => {
     setDialogType("scanCheckpoint")
     setCurrentCheckpoint({
       pod_name,
@@ -110,7 +104,6 @@ const CheckpointsScreen = ({ classes }) => {
       pod_name,
       checkpoint_name
     })
-    console.log("result", result)
   }
 
   const handleShowScanResults = async (pod_name, checkpoint_name) => {
@@ -122,7 +115,6 @@ const CheckpointsScreen = ({ classes }) => {
       pod_name,
       checkpoint_name
     })
-    console.log("result", result)
     setDialogType("scanResults")
     setScanResults(result)
 
@@ -261,10 +253,6 @@ const CheckpointsScreen = ({ classes }) => {
     )
   }
 
-  if (loading) return (
-    <Loading />
-  )
-
   const renderCreateAnPushCheckpointDialog = () => {
     if (!currentCheckpoint) return
     return (
@@ -285,7 +273,7 @@ const CheckpointsScreen = ({ classes }) => {
           </Box>
           <Box p={1} display={"flex"} flexDirection={"column"}>
             <Typography fontWeight={"bold"} display={"inline"}>{`Pod: `}<Typography display={"inline"}>{currentCheckpoint?.pod_name}</Typography></Typography>
-            <Typography fontWeight={"bold"} display={"inline"}>{`Checkpoint: `}<Typography display={"inline"} style={{wordWrap: "break-word"}}>{currentCheckpoint?.checkpoint_name}</Typography></Typography>
+            <Typography fontWeight={"bold"} display={"inline"}>{`Checkpoint: `}<Typography display={"inline"} style={{ wordWrap: "break-word" }}>{currentCheckpoint?.checkpoint_name}</Typography></Typography>
           </Box>
 
           <Button variant="contained" onClick={handleConfirmPushCheckpoint}>Execute</Button>
@@ -293,7 +281,7 @@ const CheckpointsScreen = ({ classes }) => {
       </DialogComponent>
 
     )
-    }
+  }
 
   const renderScanResults = () => {
     return (
@@ -351,7 +339,7 @@ const CheckpointsScreen = ({ classes }) => {
                     <ScanResultsIcon />
                   </Tooltip>
                 </IconButton>} */}
-                
+
                 <IconButton onClick={() => handlePushCheckpoint(pod_name, checkpoint_name)}>
                   <Tooltip title="Upload Checkpoint">
                     <FileUploadIcon />
@@ -374,32 +362,38 @@ const CheckpointsScreen = ({ classes }) => {
 
 
   return (
-    <Card sx={{ padding: '5px 10px' }}>
-      {renderError()}
-      {renderDialog()}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 2, ml: 1 }}>
-        <Typography variant="h6" gutterBottom component="div">
-          Search
-        </Typography>
-        <TextField
-          sx={{ width: '300px' }}
-          size="small"
-          placeholder="Podname, Checkpointname"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </Box>
-      <TableComponent
-        classes={classes}
-        data={filteredData}
-        tableHeaders={tableHeaders}
-        total={filteredData.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        handleRowsPerPageChange={handleRowsPerPageChange}
-        handlePageChange={handlePageChange}
-      />
-    </Card>
+    <CustomerContainer title="Checkpoints" subtitle="Checkpoint List">
+      {loading ? <Loading /> : (
+        <>
+          <Paper elevation={0} sx={{ px: 3, py: 1, bgcolor: 'background.paper', borderRadius: 2 }}>
+            {renderError()}
+            {renderDialog()}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 2, ml: 1 }}>
+              <Typography variant="h6" gutterBottom component="div">
+                Search
+              </Typography>
+              <TextField
+                sx={{ width: '300px' }}
+                size="small"
+                placeholder="Podname, Checkpointname"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </Box>
+            <TableComponent
+              classes={classes}
+              data={filteredData}
+              tableHeaders={tableHeaders}
+              total={filteredData.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              handleRowsPerPageChange={handleRowsPerPageChange}
+              handlePageChange={handlePageChange}
+            />
+          </Paper>
+        </>
+      )}
+    </CustomerContainer>
   )
 }
 

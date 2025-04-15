@@ -1,4 +1,4 @@
-import { Box, Button, CircularProgress, Grid2 as Grid, TextField, Typography, Card } from "@mui/material"
+import { Box, Button, CircularProgress, Grid2 as Grid, TextField, Typography, Card, Paper } from "@mui/material"
 import { useEffect, useState } from "react";
 import TableComponent from "../common/Table";
 import { useSnackbar } from 'notistack';
@@ -13,6 +13,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { Loading } from "../common/loading";
 import AddIcon from '@mui/icons-material/Add';
+import { CustomerContainer } from "../common/CustomContainer";
 const RegistryScreen = ({ classes }) => {
   const dispatch = useDispatch()
   const { enqueueSnackbar } = useSnackbar();
@@ -175,10 +176,6 @@ const RegistryScreen = ({ classes }) => {
     )
   }
 
-  if (registryListLoading) return (
-    <Loading />
-  )
-
 
   const renderDialog = () => {
     const dialogContent = {
@@ -238,53 +235,57 @@ const RegistryScreen = ({ classes }) => {
   })
 
   return (
-    <>
-      <Button
-        variant="contained"
-        onClick={() => setDialogType("registryForm")}
-        sx={{
-          backgroundColor: 'primary.main',
-          borderRadius: '8px',
-          textTransform: 'none',
-          mb: 2,
-          px: 3,
-          py: 1,
-          '&:hover': {
-            backgroundColor: 'primary.dark',
-            boxShadow: 2,
-          },
-        }}
-        startIcon={<AddIcon />}
-      >
-        Add Registry
-      </Button>
-      <Card sx={{ padding: '5px 10px' }}>
-        {renderError()}
-        {renderDialog()}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, marginBlock: 2, ml: 1 }}>
-          <Typography variant="h6" gutterBottom component="div">
-            Search
-          </Typography>
-          <TextField
-            sx={{ width: '300px' }}
-            size="small"
-            placeholder="Config Name, Registry, Username"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </Box>
-        <TableComponent
-          classes={classes}
-          data={filteredData}
-          tableHeaders={tableHeaders}
-          total={filteredData.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          handleRowsPerPageChange={handleRowsPerPageChange}
-          handlePageChange={handlePageChange}
-        />
-      </Card>
-    </>
+    <CustomerContainer title="Registry">
+      {registryListLoading ? <Loading /> : (
+        <>
+          <Button
+            variant="contained"
+            onClick={() => setDialogType("registryForm")}
+            sx={{
+              backgroundColor: 'primary.main',
+              borderRadius: '8px',
+              textTransform: 'none',
+              mb: 2,
+              px: 3,
+              py: 1,
+              '&:hover': {
+                backgroundColor: 'primary.dark',
+                boxShadow: 2,
+              },
+            }}
+            startIcon={<AddIcon />}
+          >
+            Add Registry
+          </Button>
+          <Paper elevation={0} sx={{ px: 3, py: 1, bgcolor: 'background.paper', borderRadius: 2 }}>
+            {renderError()}
+            {renderDialog()}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, marginBlock: 2, ml: 1 }}>
+              <Typography variant="h6" gutterBottom component="div">
+                Search
+              </Typography>
+              <TextField
+                sx={{ width: '300px' }}
+                size="small"
+                placeholder="Config Name, Registry, Username"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </Box>
+            <TableComponent
+              classes={classes}
+              data={filteredData}
+              tableHeaders={tableHeaders}
+              total={filteredData.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              handleRowsPerPageChange={handleRowsPerPageChange}
+              handlePageChange={handlePageChange}
+            />
+          </Paper>
+        </>
+      )}
+    </CustomerContainer>
   )
 }
 

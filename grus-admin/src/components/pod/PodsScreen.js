@@ -1,4 +1,4 @@
-import { Box, Button, Grid2 as Grid, IconButton, Tooltip, Typography } from "@mui/material"
+import { Box, Button, Grid2 as Grid, IconButton, Paper, Tooltip, Typography } from "@mui/material"
 import { useEffect, useMemo, useState } from "react";
 import { useSnackbar } from 'notistack';
 import { podsApi } from "../../api/podsApi";
@@ -10,6 +10,7 @@ import ReactJson from "react-json-view";
 import CircularProgress from '@mui/material/CircularProgress';
 import TableComponent from "./PodsTable";
 import { Loading } from "../common/loading";
+import { CustomerContainer } from "../common/CustomContainer";
 
 const PodsScreen = ({ classes }) => {
   const { enqueueSnackbar } = useSnackbar();
@@ -63,8 +64,6 @@ const PodsScreen = ({ classes }) => {
       setLoading(true)
       const result = await podsApi.getList()
       const data = JSON.parse(result.pods)
-      // console.log({ result })
-      // const data = JSON.parse(podsData.pods)
       setData(data.items)
       setTotal(data.items.length)
     } catch (error) {
@@ -108,26 +107,31 @@ const PodsScreen = ({ classes }) => {
     </Box>
   )
 
-  if (loading) return (
-    <Loading />
-  )
-
   return (
-    <Box>
-      {renderError()}
-      {renderDialog()}
-      <TableComponent
-        classes={classes}
-        data={data}
-        tableHeaders={tableHeaders}
-        nestedTableHeaders={nestedTableHeaders}
-        total={total}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        handleRowsPerPageChange={handleRowsPerPageChange}
-        handlePageChange={handlePageChange}
-      />
-    </Box>
+    <CustomerContainer title="Pods" subtitle="List of Pods in the cluster">
+      {loading ? <Loading /> : (
+        <>
+          <Paper elevation={0} sx={{ px: 3, py: 1, bgcolor: 'background.paper', borderRadius: 2 }}>
+            {renderError()}
+            {renderDialog()}
+            <TableComponent
+              classes={classes}
+              data={data}
+              tableHeaders={tableHeaders}
+              nestedTableHeaders={nestedTableHeaders}
+              total={total}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              handleRowsPerPageChange={handleRowsPerPageChange}
+              handlePageChange={handlePageChange}
+            />
+          </Paper>
+        </>
+
+      )
+
+      }
+    </CustomerContainer>
   )
 }
 

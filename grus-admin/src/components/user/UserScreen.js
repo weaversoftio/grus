@@ -1,4 +1,4 @@
-import { Box, Button, Card, CircularProgress, FormControl, Grid2 as Grid, InputLabel, MenuItem, Select, TextField, Typography } from "@mui/material"
+import { Box, Button, Card, CircularProgress, FormControl, Grid2 as Grid, InputLabel, MenuItem, Paper, Select, TextField, Typography } from "@mui/material"
 import { useEffect, useState } from "react";
 import TableComponent from "../common/Table";
 import { useSnackbar } from 'notistack';
@@ -15,6 +15,7 @@ import { userApi } from "../../api/userApi";
 import { Loading } from "../common/loading";
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
+import { CustomerContainer } from "../common/CustomContainer";
 const UserScreen = ({ classes }) => {
   const dispatch = useDispatch()
   const { enqueueSnackbar } = useSnackbar();
@@ -186,11 +187,6 @@ const UserScreen = ({ classes }) => {
     )
   }
 
-  if (userListLoading) return (
-    <Loading />
-  )
-
-
   const renderDialog = () => {
     const dialogContent = {
       userForm: renderUserForm(),
@@ -248,53 +244,57 @@ const UserScreen = ({ classes }) => {
   })
 
   return (
-    <>
-      <Button
-        variant="contained"
-        onClick={() => setDialogType("userForm")}
-        sx={{
-          backgroundColor: 'primary.main',
-          borderRadius: '8px',
-          textTransform: 'none',
-          mb: 2,
-          px: 3,
-          py: 1,
-          '&:hover': {
-            backgroundColor: 'primary.dark',
-            boxShadow: 2,
-          },
-        }}
-        startIcon={<AddIcon />}
-      >
-        Add User
-      </Button>
-      <Card sx={{ padding: '5px 10px' }}>
-        {renderError()}
-        {renderDialog()}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, marginBlock: 2, ml: 1 }}>
-          <Typography variant="h6" gutterBottom component="div">
-            Search
-          </Typography>
-          <TextField
-            sx={{ width: '300px' }}
-            size="small"
-            placeholder="Username, Name"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </Box>
-        <TableComponent
-          classes={classes}
-          data={filteredData}
-          tableHeaders={tableHeaders}
-          total={filteredData.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          handleRowsPerPageChange={handleRowsPerPageChange}
-          handlePageChange={handlePageChange}
-        />
-      </Card>
-    </>
+    <CustomerContainer title="Users">
+      {userListLoading ? <Loading /> : (
+        <>
+          <Button
+            variant="contained"
+            onClick={() => setDialogType("userForm")}
+            sx={{
+              backgroundColor: 'primary.main',
+              borderRadius: '8px',
+              textTransform: 'none',
+              mb: 2,
+              px: 3,
+              py: 1,
+              '&:hover': {
+                backgroundColor: 'primary.dark',
+                boxShadow: 2,
+              },
+            }}
+            startIcon={<AddIcon />}
+          >
+            Add User
+          </Button>
+          <Paper elevation={0} sx={{ px: 3, py: 1, bgcolor: 'background.paper', borderRadius: 2 }}>
+            {renderError()}
+            {renderDialog()}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, marginBlock: 2, ml: 1 }}>
+              <Typography variant="h6" gutterBottom component="div">
+                Search
+              </Typography>
+              <TextField
+                sx={{ width: '300px' }}
+                size="small"
+                placeholder="Username, Name"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </Box>
+            <TableComponent
+              classes={classes}
+              data={filteredData}
+              tableHeaders={tableHeaders}
+              total={filteredData.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              handleRowsPerPageChange={handleRowsPerPageChange}
+              handlePageChange={handlePageChange}
+            />
+          </Paper>
+        </>
+      )}
+    </CustomerContainer>
   )
 }
 

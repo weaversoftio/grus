@@ -30,6 +30,16 @@ const create = async (data) => new Promise(async (resolve, reject) => {
     }
 })
 
+const update = async (data) => new Promise(async (resolve, reject) => {
+    try {
+        const response = await api.put(`/config/cluster/update`, data)
+        if (!response.data) return reject()
+        resolve(response.data)
+    } catch (err) {
+        reject(err)
+    }
+})
+
 const uploadSshkey = async (clusterName, formData) => new Promise(async (resolve, reject) => {
     try {
         const response = await api.post(`/config/cluster/nodes/upload-ssh-key?cluster_name=${encodeURIComponent(clusterName)}`, formData, {
@@ -102,16 +112,61 @@ const getStatistics = async () => new Promise(async (resolve, reject) => {
     }
 })
 
+const getNodeConfig = async (clusterName) => new Promise(async (resolve, reject) => {
+    try {
+        const response = await api.get(`/config/cluster/node?cluster_name=${encodeURIComponent(clusterName)}`)
+        if (!response.data) return reject()
+        resolve(response.data)
+    } catch (err) {
+        reject(err)
+    }
+})
+
+const updateNodeConfig = async (clusterName, data) => new Promise(async (resolve, reject) => {
+    try {
+        const response = await api.put(`/config/cluster/nodes/edit`, { cluster_name: clusterName, updated_config: data })
+        if (!response.data) return reject()
+        resolve(response.data)
+    } catch (err) {
+        reject(err)
+    }
+})
+
+const getPlaybookConfigs = async () => new Promise(async (resolve, reject) => {
+    try {
+        const response = await api.get(`/config/playbooks/list`)
+        if (!response.data) return reject()
+        resolve(response.data)
+    } catch (err) {
+        reject(err)
+    }
+})
+
+const updatePlaybookConfig = async ({name, data}) => new Promise(async (resolve, reject) => {
+    try {
+        const response = await api.put(`/config/playbooks/update`, {filename: name, content: data})
+        if (!response.data) return reject()
+        resolve(response.data)
+    } catch (err) {
+        reject(err)
+    }
+})
+
 
 export const clusterApi = {
     getById,
     getList,
     create,
+    update,
     uploadSshkey,
     remove,
     login,
     verify,
     enableCheckpointing,
     installRunC,
-    getStatistics
+    getStatistics,
+    getNodeConfig,
+    updateNodeConfig,
+    getPlaybookConfigs,
+    updatePlaybookConfig
 }
